@@ -4,7 +4,7 @@ function usage()
 {
   local just_help=$1
   local missing_required=$2
-  local invalid_argument=$3
+  local invalid_value=$3
   local invalid_option=$4
 
   local help="Usage: create-bash-script.sh [OPTIONS]
@@ -38,13 +38,13 @@ Options (* indicates it is required):
   then
     echo "Missing required argument: $missing_required"
   fi
-  if [ "$invalid_option" != "" ]
+
+  if [ "$invalid_option" != "" ] && [ "$invalid_value" = "" ]
   then
     echo "Invalid option: $invalid_option"
-  fi
-  if [ "$invalid_argument" != "" ]
+  elif [ "$invalid_value" != "" ]
   then
-    echo "Invalid argument: $invalid_argument"
+    echo "Invalid value: $invalid_value for option: --$invalid_option"
   fi
 
   echo -e "\n"
@@ -54,6 +54,63 @@ Options (* indicates it is required):
 
 function beginswith() {
   case $2 in "$1"*) true;; *) false;; esac;
+}
+
+function create_arg_array() {
+  local long_arg_csv=$1
+  local short_arg_csv=$2
+  IFS=',' read -r -a temp_arr1 <<< "$long_arg_csv"
+  IFS=',' read -r -a temp_arr2 <<< "$short_arg_csv"
+
+  arg_array=()
+
+  for index in "${!temp_arr1[@]}"
+  do
+    arg_array+=("${temp_arr1[$index]},${temp_arr2[$index]}")
+  done
+}
+
+function create_usage_single() {
+  local single_arg_csv=$1
+  IFS=',' read -r -a temp_arr1 <<< "$single_arg_csv"
+
+  local short_opt="${temp_arr1[1]}"
+  local long_opt="${temp_arr1[0]}"
+  local is_required=" "
+
+  if beginswith "*" $long_opt
+  then
+    is_required="*"
+    # remove the first character: *
+    long_opt=$(echo "$long_opt" | cut -c 2-)
+  fi
+
+  if [ "$short_opt" = "" ]
+  then
+    echo " $is_required      --$long_opt$seperator     [ENTER YOUR DESCRIPTION HERE]"
+  else
+    echo " $is_required -$short_opt$seperator, --$long_opt$seperator     [ENTER YOUR DESCRIPTION HERE]"
+  fi
+}
+
+function create_req_arg_string() {
+  req_arg_string="REQ_ARGS("
+
+  for item in "${arg_array[@]}"
+  do
+    IFS=',' read -r -a temp_arr1 <<< "$item"
+    local long_opt="${temp_arr1[0]}"
+
+    if beginswith "*" $long_opt
+    then
+      is_required="*"
+      # remove the first character: *
+      long_opt=$(echo "$long_opt" | cut -c 2-)
+    fi
+    req_arg_string="$req_arg_string\"$long_opt\" "
+  done
+
+  req_arg_string="$req_arg_string)"
 }
 
 # required argument list:
@@ -75,8 +132,18 @@ case $key in
     shift
     shift
     ;;
+    -sa|--short-arguments)
+    short_arguments="$2"
+    shift
+    shift
+    ;;
     -n|--name)
     name="$2"
+    shift
+    shift
+    ;;
+    --question)
+    question="$2"
     shift
     shift
     ;;
@@ -87,12 +154,6 @@ case $key in
 esac
 done
 
-# for i in "${POSITIONAL[@]}"; do
-#   echo "$i"
-#   if beginswith "-" "$i"; then
-#     echo "it begins with dash"
-#   fi
-# done
 
 for i in "${REQ_ARGS[@]}"; do
   # $i is the string of the variable name
@@ -106,17 +167,30 @@ for i in "${REQ_ARGS[@]}"; do
   fi
 done
 
-# number_of_arguments=${#POSITIONAL[@]}
+if [ "$seperator" = "" ] || [ "$seperator" = "SPACE" ]
+then
+  seperator=" "
+elif [ "$seperator" = "EQUALS" ]
+then
+  seperator="="
+else
+  usage "" "" "$seperator" "seperator"
+  exit
+fi
 
-# echo "number_of_argumnets: $number_of_arguments"
-# last_argument=${POSITIONAL[$number_of_arguments - 1]}
-# second_last_argument=${POSITIONAL[$number_of_arguments - 2]}
-# echo "last argument: $last_argument"
-# echo "second to last argument: $second_last_argument"
+create_arg_array "$arguments" "$short_arguments"
+create_req_arg_string
+usage_string=""
 
-# if beginswith "-" "$second_last_argument"; then
-  # this means user only provided a single comma seperated list
-  # which means that they only want long options
+for item in "${arg_array[@]}"
+do
+  single_usage_item=$(create_usage_single "$item")
+  usage_string="$usage_string $single_usage_item\n"
+done
+
+echo -e "$usage_string"
+echo "$req_arg_string"
+
 
 # check if that file already exists
 if [ -f "$name" ]; then
@@ -130,7 +204,7 @@ if [ -f "$name" ]; then
   fi
 fi
 
-echo "#!/usr/bin/env bash
+echo -e "#!/usr/bin/env bash
 
 function usage()
 {
@@ -146,34 +220,27 @@ function usage()
 Example: $name [ENTER YOUR EXAMPLE ARGUMENTS HERE]
 
 Options (* indicates it is required):
- *  -n, --name                name of the output script
- *  -a, --arguments           a comma seperated list of arguments to parse in your script
-    -s, --seperator           only two options: SPACE | EQUALS (defaults to SPACE)
-    -sa, --short-arguments    a comma seperated list of short names for your arguments\"
-
-  if [ \"\$just_help\" != \"\" ]
-  then
-    echo \"\$help\"
-    return
-  fi
+$usage_string\"
 
   if [ \"\$missing_required\" != \"\" ]
   then
     echo \"Missing required argument: \$missing_required\"
   fi
-  if [ \"\$invalid_option\" != \"\" ]
+
+  if [ \"\$invalid_option\" != \"\" ] && [ \"\$invalid_value\" = \"\" ]
   then
     echo \"Invalid option: \$invalid_option\"
-  fi
-  if [ \"\$invalid_argument\" != \"\" ]
+  elif [ \"\$invalid_value\" != \"\" ]
   then
-    echo \"Invalid argument: \$invalid_argument\"
+    echo \"Invalid value: \$invalid_value for option: --\$invalid_option\"
   fi
 
-  echo -e \"\n\"
+  echo -e \"\\n\"
   echo \"\$help\"
   return
 }
+
+$req_arg_string
 
 # get command line arguments
 POSITIONAL=()
