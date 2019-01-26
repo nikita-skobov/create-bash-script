@@ -176,11 +176,6 @@ case $key in
     shift
     shift
     ;;
-    --question)
-    question="$2"
-    shift
-    shift
-    ;;
     *)
     POSITIONAL+=("$1") # saves unknown option in array
     shift
@@ -235,10 +230,6 @@ else
   loop_type_string="for key in \"\$@\"\ndo\n"
 fi
 
-# echo -e "$usage_string"
-# echo "$req_arg_string"
-# echo -e "$parse_string"
-
 
 # check if that file already exists
 if [ -f "$name" ]; then
@@ -252,6 +243,7 @@ if [ -f "$name" ]; then
   fi
 fi
 
+# output to file
 echo -e "#!/usr/bin/env bash
 
 function usage()
