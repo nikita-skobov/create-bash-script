@@ -23,3 +23,5 @@ A bash script designed to create other bash srcipts with argument parsing and de
   - --seperator | -s
     - two possible values: SPACE or EQUALS
     defaults to SPACE. if you specify EQUALS then your script usage will use equals seperated argument parsing like so: `[scriptname.sh] --country=usa` whereas if you keep the default, or explicitly specify SPACE, then your usage will be: `[scriptname.sh] --country usa`
+  - --help
+    - displays the scripts usage

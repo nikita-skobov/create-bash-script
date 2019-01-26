@@ -26,7 +26,8 @@ Options (* indicates it is required):
  *  -n, --name                name of the output script
  *  -a, --arguments           a comma seperated list of arguments to parse in your script
     -s, --seperator           only two options: SPACE | EQUALS (defaults to SPACE)
-    -sa, --short-arguments    a comma seperated list of short names for your arguments"
+    -sa, --short-arguments    a comma seperated list of short names for your arguments
+         --help               displays this usage text"
 
   if [ "$just_help" != "" ]
   then
@@ -156,6 +157,10 @@ while [[ $# -gt 0 ]]
 do
 key="$1"
 case $key in
+    --help)
+    usage 1
+    exit
+    ;;
     -s|--seperator)
     seperator="$2"
     shift # past argument
