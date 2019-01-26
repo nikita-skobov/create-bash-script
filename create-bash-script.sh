@@ -94,7 +94,7 @@ function create_usage_single() {
 }
 
 function create_req_arg_string() {
-  req_arg_string="REQ_ARGS("
+  req_arg_string="REQ_ARGS=("
 
   for item in "${arg_array[@]}"
   do
@@ -282,5 +282,17 @@ case \$key in$parse_string
     shift
     ;;
 esac
+done
+
+for i in \"\${REQ_ARGS[@]}\"; do
+  # \$i is the string of the variable name
+  # \${!i} is a parameter expression to get the value
+  # of the variable whose name is i.
+  req_var=\${!i}
+  if [ \"\$req_var\" = \"\" ]
+  then
+    usage \"\" \"--\$i\"
+    exit
+  fi
 done
 " >> "$name"
