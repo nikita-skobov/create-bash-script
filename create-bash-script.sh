@@ -106,8 +106,8 @@ function create_req_arg_string() {
       is_required="*"
       # remove the first character: *
       long_opt=$(echo "$long_opt" | cut -c 2-)
+      req_arg_string="$req_arg_string\"$long_opt\" "
     fi
-    req_arg_string="$req_arg_string\"$long_opt\" "
   done
 
   req_arg_string="$req_arg_string)"
@@ -135,6 +135,13 @@ function create_parse_string() {
         parse_string="$parse_string\n\t\t--$long_opt)\n\t\t$long_opt=\"\$2\"\n\t\tshift\n\t\tshift\n\t\t;;"
       else
         parse_string="$parse_string\n\t\t-$short_opt|--$long_opt)\n\t\t$long_opt=\"\$2\"\n\t\tshift\n\t\tshift\n\t\t;;"
+      fi
+    else
+      if [ "$short_opt" = "" ]
+      then
+        parse_string="$parse_string\n\t\t--$long_opt=*)\n\t\t$long_opt=\"\${key#*=}\"\n\t\tshift\n\t\t;;"
+      else
+        parse_string="$parse_string\n\t\t-$short_opt=*|--$long_opt=*)\n\t\t$long_opt=\"\${key#*=}\"\n\t\tshift\n\t\t;;"
       fi
     fi
   done
@@ -216,6 +223,15 @@ do
   usage_string="$usage_string $single_usage_item\n"
 done
 
+loop_type_string=""
+
+if [ "$seperator" = " " ]
+then
+  loop_type_string="while [[ \$# -gt 0 ]]\ndo\nkey=\"\$1\"\n"
+else
+  loop_type_string="for key in \"\$@\"\ndo\n"
+fi
+
 # echo -e "$usage_string"
 # echo "$req_arg_string"
 # echo -e "$parse_string"
@@ -273,9 +289,7 @@ $req_arg_string
 
 # get command line arguments
 POSITIONAL=()
-while [[ \$# -gt 0 ]]
-do
-key=\"\$1\"
+$loop_type_string
 case \$key in$parse_string
     *)
     POSITIONAL+=(\"\$1\") # saves unknown option in array
