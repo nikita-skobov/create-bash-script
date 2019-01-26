@@ -113,6 +113,33 @@ function create_req_arg_string() {
   req_arg_string="$req_arg_string)"
 }
 
+function create_parse_string() {
+  parse_string=""
+
+  for item in "${arg_array[@]}"
+  do
+    IFS=',' read -r -a temp_arr1 <<< "$item"
+    local long_opt="${temp_arr1[0]}"
+    local short_opt="${temp_arr1[1]}"
+
+    if beginswith "*" $long_opt
+    then
+      # remove the first character: *
+      long_opt=$(echo "$long_opt" | cut -c 2-)
+    fi
+
+    if [ "$seperator" = " " ]
+    then
+      if [ "$short_opt" = "" ]
+      then
+        parse_string="$parse_string\n\t\t--$long_opt)\n\t\t$long_opt=\"\$2\"\n\t\tshift\n\t\tshift\n\t\t;;"
+      else
+        parse_string="$parse_string\n\t\t-$short_opt|--$long_opt)\n\t\t$long_opt=\"\$2\"\n\t\tshift\n\t\tshift\n\t\t;;"
+      fi
+    fi
+  done
+}
+
 # required argument list:
 REQ_ARGS=("arguments" "name")
 
@@ -180,6 +207,7 @@ fi
 
 create_arg_array "$arguments" "$short_arguments"
 create_req_arg_string
+create_parse_string
 usage_string=""
 
 for item in "${arg_array[@]}"
@@ -188,8 +216,9 @@ do
   usage_string="$usage_string $single_usage_item\n"
 done
 
-echo -e "$usage_string"
-echo "$req_arg_string"
+# echo -e "$usage_string"
+# echo "$req_arg_string"
+# echo -e "$parse_string"
 
 
 # check if that file already exists
@@ -247,22 +276,7 @@ POSITIONAL=()
 while [[ \$# -gt 0 ]]
 do
 key=\"\$1\"
-case \$key in
-    -s|--seperator)
-    seperator=\"\$2\"
-    shift # past argument
-    shift # past value
-    ;;
-    -a|--arguments)
-    arguments=\"\$2\"
-    shift
-    shift
-    ;;
-    -n|--name)
-    name=\"\$2\"
-    shift
-    shift
-    ;;
+case \$key in$parse_string
     *)
     POSITIONAL+=(\"\$1\") # saves unknown option in array
     shift
