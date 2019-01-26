@@ -224,11 +224,14 @@ do
 done
 
 loop_type_string=""
+loop_positional_string=""
 
 if [ "$seperator" = " " ]
 then
+  loop_positional_string="POSITIONAL+=(\"\$1\") # saves unknown option in array"
   loop_type_string="while [[ \$# -gt 0 ]]\ndo\nkey=\"\$1\"\n"
 else
+  loop_positional_string="POSITIONAL+=(\"\$key\") # saves unknown option in array"
   loop_type_string="for key in \"\$@\"\ndo\n"
 fi
 
@@ -292,7 +295,7 @@ POSITIONAL=()
 $loop_type_string
 case \$key in$parse_string
     *)
-    POSITIONAL+=(\"\$1\") # saves unknown option in array
+    $loop_positional_string
     shift
     ;;
 esac
