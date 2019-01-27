@@ -1,5 +1,5 @@
 # create-bash-script
-A bash script designed to create other bash srcipts with basic argument parsing.
+A bash script designed to create other bash scripts with basic argument parsing.
 
 ## Installation:
 
