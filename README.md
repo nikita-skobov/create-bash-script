@@ -1,6 +1,37 @@
 # create-bash-script
 A bash script designed to create other bash srcipts with argument parsing and default value setting
 
+## Installation:
+
+This script was designed to be used as a global program to easily create
+bash scripts within any directory. If you want to use it this way, this script must be on your systems PATH, or add it as an alias.
+
+(A note for Windows users: As far as I know, you cannot run bash scripts natively on windows. You would need to either run it through powershell, or some other third party shell like [GitBash](https://git-scm.com/downloads).
+The following two examples should work with GitBash)
+
+- Add as an alias:
+```sh
+git clone https://github.com/nikita-skobov/create-bash-script.git
+cd create-bash-script/
+alias create-bash-script="bash /path/to/this/directory/create-bash-script/create-bash-script.sh"
+# then you should be able to run the script from any folder by running:
+# create-bash-script [OPTIONS]
+```
+
+- Add to system PATH:
+```sh
+git clone https://github.com/nikita-skobov/create-bash-script.git
+cd create-bash-script/
+echo $PATH # to see which folders are part of your path
+# pick one of the folders (I reccommend /usr/local/bin)
+sudo cp create-bash-script.sh /usr/local/bin # or any other folder thats part of your PATH
+# then you can run the script from any folder by running:
+# create-bash-script.sh [OPTIONS]
+# NOTE that this way you have to specify the .sh file extension
+# If you don't want to do this, then you can rename your script:
+# sudo mv /usr/local/bin/create-bash-script.sh /usr/local/bin/create-bash-script
+```
+
 ## Usage
 
 ```sh
