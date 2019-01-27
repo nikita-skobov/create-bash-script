@@ -133,16 +133,16 @@ function create_parse_string() {
     then
       if [ "$short_opt" = "" ]
       then
-        parse_string="$parse_string\n\t\t--$long_opt)\n\t\t$long_opt=\"\$2\"\n\t\tshift\n\t\tshift\n\t\t;;"
+        parse_string="$parse_string\n\t--$long_opt)\n\t\t$long_opt=\"\$2\"\n\t\tshift\n\t\tshift\n\t\t;;"
       else
-        parse_string="$parse_string\n\t\t-$short_opt|--$long_opt)\n\t\t$long_opt=\"\$2\"\n\t\tshift\n\t\tshift\n\t\t;;"
+        parse_string="$parse_string\n\t-$short_opt|--$long_opt)\n\t\t$long_opt=\"\$2\"\n\t\tshift\n\t\tshift\n\t\t;;"
       fi
     else
       if [ "$short_opt" = "" ]
       then
-        parse_string="$parse_string\n\t\t--$long_opt=*)\n\t\t$long_opt=\"\${key#*=}\"\n\t\tshift\n\t\t;;"
+        parse_string="$parse_string\n\t--$long_opt=*)\n\t\t$long_opt=\"\${key#*=}\"\n\t\tshift\n\t\t;;"
       else
-        parse_string="$parse_string\n\t\t-$short_opt=*|--$long_opt=*)\n\t\t$long_opt=\"\${key#*=}\"\n\t\tshift\n\t\t;;"
+        parse_string="$parse_string\n\t-$short_opt=*|--$long_opt=*)\n\t\t$long_opt=\"\${key#*=}\"\n\t\tshift\n\t\t;;"
       fi
     fi
   done
@@ -265,6 +265,7 @@ function usage()
 Example: $name [ENTER YOUR EXAMPLE ARGUMENTS HERE]
 
 Options (* indicates it is required):
+    -h , --help      [Print help function and exit]
 $usage_string\"
 
   if [ \"\$missing_required\" != \"\" ]
@@ -284,17 +285,21 @@ $usage_string\"
   echo \"\$help\"
   return
 }
-
+function init_args()
+{
 $req_arg_string
 
 # get command line arguments
 POSITIONAL=()
 $loop_type_string
 case \$key in$parse_string
-    *)
-    $loop_positional_string
-    shift
-    ;;
+\t-h|--help)
+\t\tusage 1 && exit 0
+\t\t;;
+\t*)
+\t\t$loop_positional_string
+\t\tshift
+\t\t;;
 esac
 done
 
@@ -309,4 +314,7 @@ for i in \"\${REQ_ARGS[@]}\"; do
     exit
   fi
 done
+}
+init_args \$@
 " >> "$name"
+chmod u+x $name
