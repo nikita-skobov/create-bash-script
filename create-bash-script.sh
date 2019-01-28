@@ -102,24 +102,24 @@ function create_usage_single() {
     then
       if [ "$long_opt" = "help" ];
       then
-	echo -e "       --$long_opt\t\t[Print help function and exit]"
+	echo -e "\\ \\--$long_opt\\[Print help function and exit]"
       else
-	echo -e " $is_required      --$long_opt\t\t[ENTER YOUR DESCRIPTION HERE]"
+	echo -e "  $is_required\\ \\--$long_opt\\[ENTER YOUR DESCRIPTION HERE]"
       fi
     else
-      echo -e " $is_required --$long_opt$seperator\t\t[ENTER YOUR DESCRIPTION HERE]"
+      echo -e "  $is_required\\ \\--$long_opt$seperator\\[ENTER YOUR DESCRIPTION HERE]"
     fi
   else
     if [[ $(echo $no_arg_string | grep $long_opt) ]];
     then
       if [ "$long_opt" = "help" ];
       then
-	echo "   -$short_opt, --$long_opt\t\t[Print help function and exit]"
+	echo "\\-$short_opt,\\--$long_opt\\[Print help function and exit]"
       else
-        echo " $is_required -$short_opt, --$long_opt\t\t[ENTER YOUR DESCRIPTION HERE]"
+        echo "  $is_required\\-$short_opt,\\--$long_opt\\[ENTER YOUR DESCRIPTION HERE]"
       fi
     else
-      echo " $is_required -$short_opt$seperator, --$long_opt$seperator\t\t[ENTER YOUR DESCRIPTION HERE]"
+      echo "  $is_required\\-$short_opt$seperator,\\--$long_opt$seperator\\[ENTER YOUR DESCRIPTION HERE]"
     fi
   fi
 }
@@ -363,8 +363,8 @@ function usage()
 
 Example: $name [ENTER YOUR EXAMPLE ARGUMENTS HERE]
 
-Options (* indicates it is required):
-$usage_string\"
+Options (* indicates it is required):\"
+  local help_options=\"$usage_string\"
 
   if [ \"\$missing_required\" != \"\" ]
   then
@@ -381,6 +381,7 @@ $usage_string\"
 
   echo -e \"\\n\"
   echo \"\$help\"
+  echo \"\$help_options\" | column -t -s'\\\'
   return
 }
 function init_args()
