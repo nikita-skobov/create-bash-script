@@ -100,14 +100,24 @@ function create_usage_single() {
   then
     if [[ $(echo $no_arg_string | grep $long_opt) ]];
     then
-      echo -e " $is_required      --$long_opt\t\t[ENTER YOUR DESCRIPTION HERE]"
+      if [ "$long_opt" = "help" ];
+      then
+	echo -e "       --$long_opt\t\t[Print help function and exit]"
+      else
+	echo -e " $is_required      --$long_opt\t\t[ENTER YOUR DESCRIPTION HERE]"
+      fi
     else
       echo -e " $is_required --$long_opt$seperator\t\t[ENTER YOUR DESCRIPTION HERE]"
     fi
   else
     if [[ $(echo $no_arg_string | grep $long_opt) ]];
     then
-      echo " $is_required -$short_opt, --$long_opt\t\t[ENTER YOUR DESCRIPTION HERE]"
+      if [ "$long_opt" = "help" ];
+      then
+	echo "   -$short_opt, --$long_opt\t\t[Print help function and exit]"
+      else
+        echo " $is_required -$short_opt, --$long_opt\t\t[ENTER YOUR DESCRIPTION HERE]"
+      fi
     else
       echo " $is_required -$short_opt$seperator, --$long_opt$seperator\t\t[ENTER YOUR DESCRIPTION HERE]"
     fi
@@ -193,14 +203,24 @@ function create_parse_string() {
       then
 	if [[ $(echo $no_arg_string | grep $long_opt) ]]; 
 	then
-	  parse_string="$parse_string\n\t--$long_opt)\n\t\t$long_opt=\"true\"\n\t\tshift\n\t\t;;"
+	  if [ "$long_opt" = "help" ];
+	  then
+	    parse_string="$parse_string\n\t--$long_opt)\n\t\tusage 1 && exit 0\n\t\t;;"
+	  else
+	    parse_string="$parse_string\n\t--$long_opt)\n\t\t$long_opt=\"true\"\n\t\tshift\n\t\t;;"
+	  fi
 	else
           parse_string="$parse_string\n\t--$long_opt)\n\t\t$long_opt=\"\$2\"\n\t\tshift\n\t\tshift\n\t\t;;"
 	fi
       else
 	if [[ $(echo $no_arg_string | grep $long_opt) ]]; 
 	then
-	  parse_string="$parse_string\n\t-$short_opt|--$long_opt)\n\t\t$long_opt=\"true\"\n\t\tshift\n\t\t;;"
+	  if [ "$long_opt" = "help" ];
+          then
+            parse_string="$parse_string\n\t-$short_opt|--$long_opt)\n\t\tusage 1 && exit 0\n\t\t;;"
+          else
+	    parse_string="$parse_string\n\t-$short_opt|--$long_opt)\n\t\t$long_opt=\"true\"\n\t\tshift\n\t\t;;"
+	  fi
 	else
           parse_string="$parse_string\n\t-$short_opt|--$long_opt)\n\t\t$long_opt=\"\$2\"\n\t\tshift\n\t\tshift\n\t\t;;"
 	fi
@@ -344,7 +364,6 @@ function usage()
 Example: $name [ENTER YOUR EXAMPLE ARGUMENTS HERE]
 
 Options (* indicates it is required):
-    -h , --help      [Print help function and exit]
 $usage_string\"
 
   if [ \"\$missing_required\" != \"\" ]
@@ -372,9 +391,6 @@ $req_arg_string
 POSITIONAL=()
 $loop_type_string
 case \$key in$parse_string
-\t-h|--help)
-\t\tusage 1 && exit 0
-\t\t;;
 \t*)
 \t\t$loop_positional_string
 \t\tshift
