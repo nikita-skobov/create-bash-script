@@ -11,7 +11,7 @@ The following two examples should work with GitBash)
 
 - Add as an alias:
 ```sh
-git clone https://github.com/nikita-skobov/create-bash-script.git
+git clone <this git repository>
 cd create-bash-script/
 alias create-bash-script="bash /path/to/this/directory/create-bash-script/create-bash-script.sh"
 # then you should be able to run the script from any folder by running:
@@ -20,10 +20,10 @@ alias create-bash-script="bash /path/to/this/directory/create-bash-script/create
 
 - Add to system PATH:
 ```sh
-git clone https://github.com/nikita-skobov/create-bash-script.git
+git clone <this git repository>
 cd create-bash-script/
 echo $PATH # to see which folders are part of your path
-# pick one of the folders (I reccommend /usr/local/bin)
+# pick one of the folders (I recommend /usr/local/bin)
 sudo cp create-bash-script.sh /usr/local/bin # or any other folder thats part of your PATH
 # then you can run the script from any folder by running:
 # create-bash-script.sh [OPTIONS]
