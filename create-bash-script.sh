@@ -210,7 +210,7 @@ function create_parse_string() {
 	    parse_string="$parse_string\n\t--$long_opt)\n\t\t$long_opt=\"true\"\n\t\tshift\n\t\t;;"
 	  fi
 	else
-          parse_string="$parse_string\n\t--$long_opt)\n\t\t$long_opt=\"\$2\"\n\t\tshift\n\t\tshift\n\t\t;;"
+          parse_string="$parse_string\n\t--$long_opt)\n\t\t$long_opt=\"\$2\"\n\t\tshift 2\n\t\t;;"
 	fi
       else
 	if [[ $(echo $no_arg_string | grep $long_opt) ]]; 
@@ -222,7 +222,7 @@ function create_parse_string() {
 	    parse_string="$parse_string\n\t-$short_opt|--$long_opt)\n\t\t$long_opt=\"true\"\n\t\tshift\n\t\t;;"
 	  fi
 	else
-          parse_string="$parse_string\n\t-$short_opt|--$long_opt)\n\t\t$long_opt=\"\$2\"\n\t\tshift\n\t\tshift\n\t\t;;"
+          parse_string="$parse_string\n\t-$short_opt|--$long_opt)\n\t\t$long_opt=\"\$2\"\n\t\tshift 2\n\t\t;;"
 	fi
       fi
     else
@@ -261,23 +261,19 @@ case $key in
     ;;
     -s|--seperator)
     seperator="$2"
-    shift # past argument
-    shift # past value
+    shift 2
     ;;
     -a|--arguments)
     arguments="$2"
-    shift
-    shift
+    shift 2
     ;;
     -sa|--short-arguments)
     short_arguments="$2"
-    shift
-    shift
+    shift 2
     ;;
     -n|--name)
     name="$2"
-    shift
-    shift
+    shift 2
     ;;
     *)
     POSITIONAL+=("$1") # saves unknown option in array
