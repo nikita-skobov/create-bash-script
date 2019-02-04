@@ -102,24 +102,24 @@ function create_usage_single() {
     then
       if [ "$long_opt" = "help" ];
       then
-	echo -e "\\ \\--$long_opt\\[Print help function and exit]"
+	echo -e "\\ \\--$long_opt\\ \\[Print help function and exit]"  # only long "--help" param
       else
-	echo -e "  $is_required\\ \\--$long_opt\\[ENTER YOUR DESCRIPTION HERE]"
+	echo -e "  $is_required\\ \\--$long_opt\\ \\[ENTER YOUR DESCRIPTION HERE]" #only long param with no args
       fi
     else
-      echo -e "  $is_required\\ \\--$long_opt$seperator\\[ENTER YOUR DESCRIPTION HERE]"
+      echo -e "  $is_required\\ \\--${long_opt}${seperator}\\<Parameter>\\[ENTER YOUR DESCRIPTION HERE]" #only long param with argument
     fi
   else
     if [[ $(echo $no_arg_string | grep $long_opt) ]];
     then
       if [ "$long_opt" = "help" ];
       then
-	echo "\\-$short_opt,\\--$long_opt\\[Print help function and exit]"
+	echo "\\-$short_opt,\\--$long_opt\\ \\[Print help function and exit]" #long and short "--help" param
       else
-        echo "  $is_required\\-$short_opt,\\--$long_opt\\[ENTER YOUR DESCRIPTION HERE]"
+        echo "  $is_required\\-$short_opt,\\--$long_opt\\ \\[ENTER YOUR DESCRIPTION HERE]" #long and short param with no args
       fi
     else
-      echo "  $is_required\\-$short_opt$seperator,\\--$long_opt$seperator\\[ENTER YOUR DESCRIPTION HERE]"
+      echo "  $is_required\\-$short_opt$seperator,\\--${long_opt}${seperator}\\<Parameter>\\[ENTER YOUR DESCRIPTION HERE]" #long and short param with argument
     fi
   fi
 }
