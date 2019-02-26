@@ -57,6 +57,10 @@ function beginswith() {
   case $2 in "$1"*) true;; *) false;; esac;
 }
 
+function endswith() {
+  case $2 in *"$1") true;; *) false;; esac;
+}
+
 function create_arg_array() {
   local long_arg_csv=$1
   local short_arg_csv=$2
@@ -83,14 +87,40 @@ function create_usage_single() {
   then
     is_required="*"
     # remove the first character: *
-    long_opt=$(echo "$long_opt" | cut -c 2-)
+    long_opt=$(echo ${long_opt#\*})
+  fi
+
+  if endswith "-" $long_opt
+  then
+    # remove the last character: -
+    long_opt=$(echo ${long_opt%\-})
   fi
 
   if [ "$short_opt" = "" ]
   then
-    echo " $is_required      --$long_opt$seperator     [ENTER YOUR DESCRIPTION HERE]"
+    if [[ $(echo $no_arg_string | grep $long_opt) ]];
+    then
+      if [ "$long_opt" = "help" ];
+      then
+	echo -e "\\ \\--$long_opt\\ \\[Print help function and exit]"  # only long "--help" param
+      else
+	echo -e "  $is_required\\ \\--$long_opt\\ \\[ENTER YOUR DESCRIPTION HERE]" #only long param with no args
+      fi
+    else
+      echo -e "  $is_required\\ \\--${long_opt}${seperator}\\<Parameter>\\[ENTER YOUR DESCRIPTION HERE]" #only long param with argument
+    fi
   else
-    echo " $is_required -$short_opt$seperator, --$long_opt$seperator     [ENTER YOUR DESCRIPTION HERE]"
+    if [[ $(echo $no_arg_string | grep $long_opt) ]];
+    then
+      if [ "$long_opt" = "help" ];
+      then
+	echo "\\-$short_opt,\\--$long_opt\\ \\[Print help function and exit]" #long and short "--help" param
+      else
+        echo "  $is_required\\-$short_opt,\\--$long_opt\\ \\[ENTER YOUR DESCRIPTION HERE]" #long and short param with no args
+      fi
+    else
+      echo "  $is_required\\-$short_opt$seperator,\\--${long_opt}${seperator}\\<Parameter>\\[ENTER YOUR DESCRIPTION HERE]" #long and short param with argument
+    fi
   fi
 }
 
@@ -102,6 +132,12 @@ function create_req_arg_string() {
     IFS=',' read -r -a temp_arr1 <<< "$item"
     local long_opt="${temp_arr1[0]}"
 
+    if endswith "-" $long_opt
+    then
+      # remove the last character: -
+      long_opt=$(echo ${long_opt%\-})
+    fi
+
     if beginswith "*" $long_opt
     then
       is_required="*"
@@ -112,6 +148,32 @@ function create_req_arg_string() {
   done
 
   req_arg_string="$req_arg_string)"
+}
+
+function create_no_arg_string() {
+  no_arg_string="NO_ARGS=("
+
+  for item in "${arg_array[@]}"
+  do
+    IFS=',' read -r -a temp_arr1 <<< "$item"
+    local long_opt="${temp_arr1[0]}"
+
+    if beginswith "*" $long_opt
+    then
+      is_required="*"
+      # remove the first character: *
+      long_opt=$(echo ${long_opt#\*})
+    fi
+
+    if endswith "-" $long_opt
+    then
+      # remove the last character: -
+      long_opt=$(echo ${long_opt%\-})
+      no_arg_string="$no_arg_string\"$long_opt\" "
+    fi
+  done
+
+  no_arg_string="$no_arg_string)"
 }
 
 function create_parse_string() {
@@ -129,20 +191,56 @@ function create_parse_string() {
       long_opt=$(echo "$long_opt" | cut -c 2-)
     fi
 
+    if endswith "-" $long_opt
+    then
+      # remove the last character: -
+      long_opt=$(echo ${long_opt%\-})
+    fi
+
     if [ "$seperator" = " " ]
     then
       if [ "$short_opt" = "" ]
       then
-        parse_string="$parse_string\n\t\t--$long_opt)\n\t\t$long_opt=\"\$2\"\n\t\tshift\n\t\tshift\n\t\t;;"
+	if [[ $(echo $no_arg_string | grep $long_opt) ]]; 
+	then
+	  if [ "$long_opt" = "help" ];
+	  then
+	    parse_string="$parse_string\n\t--$long_opt)\n\t\tusage 1 && exit 0\n\t\t;;"
+	  else
+	    parse_string="$parse_string\n\t--$long_opt)\n\t\t$long_opt=\"true\"\n\t\tshift\n\t\t;;"
+	  fi
+	else
+          parse_string="$parse_string\n\t--$long_opt)\n\t\t$long_opt=\"\$2\"\n\t\tshift 2\n\t\t;;"
+	fi
       else
-        parse_string="$parse_string\n\t\t-$short_opt|--$long_opt)\n\t\t$long_opt=\"\$2\"\n\t\tshift\n\t\tshift\n\t\t;;"
+	if [[ $(echo $no_arg_string | grep $long_opt) ]]; 
+	then
+	  if [ "$long_opt" = "help" ];
+          then
+            parse_string="$parse_string\n\t-$short_opt|--$long_opt)\n\t\tusage 1 && exit 0\n\t\t;;"
+          else
+	    parse_string="$parse_string\n\t-$short_opt|--$long_opt)\n\t\t$long_opt=\"true\"\n\t\tshift\n\t\t;;"
+	  fi
+	else
+          parse_string="$parse_string\n\t-$short_opt|--$long_opt)\n\t\t$long_opt=\"\$2\"\n\t\tshift 2\n\t\t;;"
+	fi
       fi
     else
       if [ "$short_opt" = "" ]
       then
-        parse_string="$parse_string\n\t\t--$long_opt=*)\n\t\t$long_opt=\"\${key#*=}\"\n\t\tshift\n\t\t;;"
+	if [[ $(echo $no_arg_string | grep $long_opt) ]]; 
+	then
+          parse_string="$parse_string\n\t--$long_opt)\n\t\t$long_opt=\"true\"\n\t\tshift\n\t\t;;"
+	else
+          parse_string="$parse_string\n\t--$long_opt=*)\n\t\t$long_opt=\"\${key#*=}\"\n\t\tshift\n\t\t;;"
+	fi
       else
-        parse_string="$parse_string\n\t\t-$short_opt=*|--$long_opt=*)\n\t\t$long_opt=\"\${key#*=}\"\n\t\tshift\n\t\t;;"
+	if [[ $(echo $no_arg_string | grep $long_opt) ]]; 
+	then
+	  parse_string="$parse_string\n\t-$short_opt|--$long_opt)\n\t\t$long_opt=\"true\"\n\t\tshift\n\t\t;;"
+	else
+          parse_string="$parse_string\n\t-$short_opt=*|--$long_opt=*)\n\t\t$long_opt=\"\${key#*=}\"\n\t\tshift\n\t\t;;"
+	fi
       fi
     fi
   done
@@ -163,23 +261,19 @@ case $key in
     ;;
     -s|--seperator)
     seperator="$2"
-    shift # past argument
-    shift # past value
+    shift 2
     ;;
     -a|--arguments)
     arguments="$2"
-    shift
-    shift
+    shift 2
     ;;
     -sa|--short-arguments)
     short_arguments="$2"
-    shift
-    shift
+    shift 2
     ;;
     -n|--name)
     name="$2"
-    shift
-    shift
+    shift 2
     ;;
     *)
     POSITIONAL+=("$1") # saves unknown option in array
@@ -214,6 +308,7 @@ fi
 
 create_arg_array "$arguments" "$short_arguments"
 create_req_arg_string
+create_no_arg_string
 create_parse_string
 usage_string=""
 
@@ -264,8 +359,8 @@ function usage()
 
 Example: $name [ENTER YOUR EXAMPLE ARGUMENTS HERE]
 
-Options (* indicates it is required):
-$usage_string\"
+Options (* indicates it is required):\"
+  local help_options=\"$usage_string\"
 
   if [ \"\$missing_required\" != \"\" ]
   then
@@ -282,19 +377,21 @@ $usage_string\"
 
   echo -e \"\\n\"
   echo \"\$help\"
+  echo \"\$help_options\" | column -t -s'\\\'
   return
 }
-
+function init_args()
+{
 $req_arg_string
 
 # get command line arguments
 POSITIONAL=()
 $loop_type_string
 case \$key in$parse_string
-    *)
-    $loop_positional_string
-    shift
-    ;;
+\t*)
+\t\t$loop_positional_string
+\t\tshift
+\t\t;;
 esac
 done
 
@@ -309,4 +406,7 @@ for i in \"\${REQ_ARGS[@]}\"; do
     exit
   fi
 done
+}
+init_args \$@
 " >> "$name"
+chmod u+x $name
