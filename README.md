@@ -47,7 +47,7 @@ sudo cp create-bash-script.sh /usr/local/bin # or any other folder thats part of
     will create a script that parses the command line arguments and creates a
     variable for each argument name.
     If you put an asterisk (*) in front of a variable name, it will become a required parameter, and the script will exit if a user does not provide that required value.
-    If you put a minus (-) after a variable name, it will become a parameter without arguments.
+    If you put a minus (-) after a variable name, it will become a boolean parameter without arguments (ie: set to true if the user provides the argument).
   - --short-arguments | -sa
     - a comma seperated list of short argument names to use
     as alternatives to the long argument names. The comma seperated list must be in the same order as the long argument comma seperated list.
