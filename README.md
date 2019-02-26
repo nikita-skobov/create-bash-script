@@ -57,3 +57,6 @@ sudo cp create-bash-script.sh /usr/local/bin # or any other folder thats part of
     defaults to SPACE. if you specify EQUALS then your script usage will use equals seperated argument parsing like so: `[scriptname.sh] --country=usa` whereas if you keep the default, or explicitly specify SPACE, then your usage will be: `[scriptname.sh] --country usa`
   - --help
     - displays the scripts usage
+
+## Contributors:
+  - [View Contributors](https://github.com/nikita-skobov/create-bash-script/graphs/contributors)
