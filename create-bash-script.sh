@@ -124,9 +124,9 @@ function create_usage_single() {
     then
       if [ "$long_opt" = "help" ];
       then
-	echo "\\-$short_opt,\\--$long_opt\\ \\[Print help function and exit]" #long and short "--help" param
+	echo "\\-$short_opt ,\\--$long_opt\\ \\[Print help function and exit]" #long and short "--help" param
       else
-        echo "  $is_required\\-$short_opt,\\--$long_opt\\ \\[ENTER YOUR DESCRIPTION HERE]" #long and short param with no args
+        echo "  $is_required\\-$short_opt ,\\--$long_opt\\ \\[ENTER YOUR DESCRIPTION HERE]" #long and short param with no args
       fi
     elif [[ $(echo $multiple_arg_string | grep $long_opt) ]];
     then
