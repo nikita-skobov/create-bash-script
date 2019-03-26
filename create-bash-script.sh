@@ -26,7 +26,7 @@ Options (* indicates it is required):
  *  -n, --name                name of the output script
  *  -a, --arguments           a comma seperated list of arguments to parse in your script
     -s, --seperator           only two options: SPACE | EQUALS (defaults to SPACE)
-    -sa, --short-arguments    a comma seperated list of short names for your arguments
+    -sa, --short-arguments    a comma separated list of short names for your arguments
          --help               displays this usage text"
 
   if [ "$just_help" != "" ]
