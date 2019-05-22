@@ -148,12 +148,12 @@ function create_usage_single() {
       fi
     elif [[ $(echo $multiple_arg_string | grep $long_opt) ]];
     then
-      echo "  $is_multiple\\-$short_opt$seperator,\\--${long_opt}${seperator}\\<Parameter>\\ \\[ENTER YOUR DESCRIPTION HERE]" #long and short param with argument
+      echo "  $is_multiple\\-${short_opt}${seperator},\\--${long_opt}${seperator}\\<Parameter>\\ \\[ENTER YOUR DESCRIPTION HERE]" #long and short param with argument
     elif [[ $(echo $default_arg_string | grep $long_opt) ]];
     then
-      echo -e "\\-$short_opt ,\\--${long_opt}${seperator}\\<Parameter> [DEFAULT is $(eval echo \$$long_opt)]\\ \\[ENTER YOUR DESCRIPTION HERE]"
+      echo -e "\\-${short_opt}${seperator} ,\\--${long_opt}${seperator}\\<Parameter> [DEFAULT is $(eval echo \$$long_opt)]\\ \\[ENTER YOUR DESCRIPTION HERE]"
     else
-      echo "  $is_required\\-$short_opt$seperator,\\--${long_opt}${seperator}\\<Parameter>\\ \\[ENTER YOUR DESCRIPTION HERE]" #long and short param with argument
+      echo "  $is_required\\-${short_opt}${seperator},\\--${long_opt}${seperator}\\<Parameter>\\ \\[ENTER YOUR DESCRIPTION HERE]" #long and short param with argument
     fi
   fi
 }
