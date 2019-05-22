@@ -61,6 +61,14 @@ function endswith() {
   case $2 in *"$1") true;; *) false;; esac;
 }
 
+function has_default() {
+  if [[ $(echo $1 | grep "=") ]]; then
+    true
+  else
+    false
+  fi
+}
+
 function create_arg_array() {
   local long_arg_csv=$1
   local short_arg_csv=$2
@@ -82,6 +90,13 @@ function create_usage_single() {
   local short_opt="${temp_arr1[1]}"
   local long_opt="${temp_arr1[0]}"
   local is_required=" "
+
+  if has_default $long_opt
+  then
+    default="true"
+    # Separate arg and value
+    source <(echo $long_opt | awk -F"=" '{print $1 "=" $2 "\nlong_opt=" $1}')
+  fi
 
   if beginswith "*" $long_opt
   then
@@ -109,30 +124,36 @@ function create_usage_single() {
     then
       if [ "$long_opt" = "help" ];
       then
-	echo -e "\\ \\--$long_opt\\ \\[Print help function and exit]"  # only long "--help" param
+	echo -e "\\ \\--$long_opt\\ \\ \\[Print help function and exit]"  # only long "--help" param
       else
-	echo -e "  $is_required\\ \\--$long_opt\\ \\[ENTER YOUR DESCRIPTION HERE]" #only long param with no args
+	echo -e "  $is_required\\ \\--$long_opt\\ \\ \\[ENTER YOUR DESCRIPTION HERE]" #only long param with no args
       fi
     elif [[ $(echo $multiple_arg_string | grep $long_opt) ]];
     then
-      echo -e "  $is_multiple\\ \\--${long_opt}${seperator}\\<Parameter>\\[ENTER YOUR DESCRIPTION HERE]" #only long param with argument
+      echo -e "  $is_multiple\\ \\--${long_opt}${seperator}\\<Parameter>\\ \\[ENTER YOUR DESCRIPTION HERE]" #only long param with argument
+    elif [[ $(echo $default_arg_string | grep $long_opt) ]];
+    then
+      echo -e "\\ \\--${long_opt}${seperator}\\<Parameter> [DEFAULT is $(eval echo \$$long_opt)]\\ \\[ENTER YOUR DESCRIPTION HERE]"
     else
-      echo -e "  $is_required\\ \\--${long_opt}${seperator}\\<Parameter>\\[ENTER YOUR DESCRIPTION HERE]" #only long param with argument
+      echo -e "  $is_required\\ \\--${long_opt}${seperator}\\<Parameter>\\ \\[ENTER YOUR DESCRIPTION HERE]" #only long param with argument
     fi
   else
     if [[ $(echo $no_arg_string | grep $long_opt) ]];
     then
       if [ "$long_opt" = "help" ];
       then
-	echo "\\-$short_opt ,\\--$long_opt\\ \\[Print help function and exit]" #long and short "--help" param
+	echo "\\-$short_opt ,\\--$long_opt\\ \\ \\[Print help function and exit]" #long and short "--help" param
       else
-        echo "  $is_required\\-$short_opt ,\\--$long_opt\\ \\[ENTER YOUR DESCRIPTION HERE]" #long and short param with no args
+        echo "  $is_required\\-$short_opt ,\\--$long_opt\\ \\ \\[ENTER YOUR DESCRIPTION HERE]" #long and short param with no args
       fi
     elif [[ $(echo $multiple_arg_string | grep $long_opt) ]];
     then
-      echo "  $is_multiple\\-$short_opt$seperator,\\--${long_opt}${seperator}\\<Parameter>\\[ENTER YOUR DESCRIPTION HERE]" #long and short param with argument
+      echo "  $is_multiple\\-$short_opt$seperator,\\--${long_opt}${seperator}\\<Parameter>\\ \\[ENTER YOUR DESCRIPTION HERE]" #long and short param with argument
+    elif [[ $(echo $default_arg_string | grep $long_opt) ]];
+    then
+      echo -e "\\-$short_opt ,\\--${long_opt}${seperator}\\<Parameter> [DEFAULT is $(eval echo \$$long_opt)]\\ \\[ENTER YOUR DESCRIPTION HERE]"
     else
-      echo "  $is_required\\-$short_opt$seperator,\\--${long_opt}${seperator}\\<Parameter>\\[ENTER YOUR DESCRIPTION HERE]" #long and short param with argument
+      echo "  $is_required\\-$short_opt$seperator,\\--${long_opt}${seperator}\\<Parameter>\\ \\[ENTER YOUR DESCRIPTION HERE]" #long and short param with argument
     fi
   fi
 }
@@ -239,6 +260,26 @@ function create_multiple_arg_string() {
   multiple_arg_string="$multiple_arg_string)"
 }
 
+function create_default_arg_string() {
+  default_arg_string="DEFAULT_ARGS=("
+
+  for item in "${arg_array[@]}"
+  do
+    IFS=',' read -r -a temp_arr1 <<< "$item"
+    local long_opt="${temp_arr1[0]}"
+    local short_opt="${temp_arr1[1]}"
+
+    if has_default $long_opt
+    then
+      # Separate arg and value
+      source <(echo $long_opt | awk -F"=" '{print $1 "=" $2 "\nlong_opt=" $1}')
+      default_arg_string="${default_arg_string}\"${long_opt}\" "
+    fi
+  done
+
+  default_arg_string="${default_arg_string})"
+  eval $default_arg_string
+}
 function create_parse_string() {
   parse_string=""
 
@@ -266,6 +307,13 @@ function create_parse_string() {
       long_opt=$(echo ${long_opt%\+})
     fi
 
+    if has_default $long_opt
+    then
+      # Separate arg and value
+      source <(echo $long_opt | awk -F"=" '{print $1 "=" $2 "\nlong_opt=" $1}')
+      default_arg_string="$default_arg_string\"$long_opt\" "
+    fi
+ 
     if [ "$seperator" = " " ]
     then
       if [ "$short_opt" = "" ]
@@ -305,7 +353,12 @@ function create_parse_string() {
       then
 	if [[ $(echo $no_arg_string | grep $long_opt) ]]; 
 	then
-          parse_string="$parse_string\n\t--$long_opt)\n\t\t$long_opt=\"true\"\n\t\tshift\n\t\t;;"
+	  if [ "$long_opt" = "help" ];
+	  then
+	    parse_string="$parse_string\n\t-$short_opt|--$long_opt)\n\t\tusage 1 && exit 0\n\t\t;;"
+	  else
+            parse_string="$parse_string\n\t--$long_opt)\n\t\t$long_opt=\"true\"\n\t\tshift\n\t\t;;"
+	  fi
 	elif [[ $(echo $multiple_arg_string | grep $long_opt) ]]; 
 	then
           parse_string="$parse_string\n\t--$long_opt=*)\n\t\t$long_opt+=(\"\${key#*=}\")\n\t\tshift\n\t\t;;"
@@ -315,7 +368,12 @@ function create_parse_string() {
       else
 	if [[ $(echo $no_arg_string | grep $long_opt) ]]; 
 	then
-	  parse_string="$parse_string\n\t-$short_opt|--$long_opt)\n\t\t$long_opt=\"true\"\n\t\tshift\n\t\t;;"
+	  if [ "$long_opt" = "help" ];
+          then
+            parse_string="$parse_string\n\t-$short_opt|--$long_opt)\n\t\tusage 1 && exit 0\n\t\t;;"
+          else
+	    parse_string="$parse_string\n\t-$short_opt|--$long_opt)\n\t\t$long_opt=\"true\"\n\t\tshift\n\t\t;;"
+	  fi
 	elif [[ $(echo $multiple_arg_string | grep $long_opt) ]]; 
 	then
           parse_string="$parse_string\n\t-$short_opt=*|--$long_opt=*)\n\t\t$long_opt+=(\"\${key#*=}\")\n\t\tshift\n\t\t;;"
@@ -391,6 +449,7 @@ create_arg_array "$arguments" "$short_arguments"
 create_req_arg_string
 create_no_arg_string
 create_multiple_arg_string
+create_default_arg_string
 create_parse_string
 usage_string=""
 
@@ -415,9 +474,9 @@ fi
 
 # check if that file already exists
 if [ -f "$name" ]; then
-  echo "file: $name already exists. Are you sure you want to overwrite it? (y or n)"
+  echo "file: $name already exists. Are you sure you want to overwrite it? (y or N)"
   read answer
-  if ! beginswith "y" "$answer"; then
+  if ! beginswith "y" "${answer,,}"; then
     echo "Overwriting of file: $name was denied. Script terminating."
     exit
   else
@@ -476,6 +535,8 @@ case \$key in$parse_string
 \t\t;;
 esac
 done
+
+$(while [[ -n ${DEFAULT_ARGS[0]} ]]; do echo ": \${${DEFAULT_ARGS[0]}:=$(eval echo \$${DEFAULT_ARGS[0]})}"; DEFAULT_ARGS=(${DEFAULT_ARGS[@]:1}); done)
 
 for i in \"\${REQ_ARGS[@]}\"; do
   # \$i is the string of the variable name
