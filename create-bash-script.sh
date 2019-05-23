@@ -322,7 +322,7 @@ function create_parse_string() {
       default_arg_string="$default_arg_string\"$long_opt\" "
     fi
 
-    long_opt_var=$(replace_dashes_with_underscores $long_opt)
+    local long_opt_var=$(replace_dashes_with_underscores $long_opt)
  
     if [ "$seperator" = " " ]
     then
