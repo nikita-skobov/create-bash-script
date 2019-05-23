@@ -323,7 +323,6 @@ function create_parse_string() {
     fi
 
     long_opt_var=$(replace_dashes_with_underscores $long_opt)
-    short_opt_var=$(replace_dashes_with_underscores $short_opt)
  
     if [ "$seperator" = " " ]
     then
