@@ -188,7 +188,8 @@ function create_req_arg_string() {
       is_required="*"
       # remove the first character: *
       long_opt=$(echo "$long_opt" | cut -c 2-)
-      req_arg_string="$req_arg_string\"$long_opt\" "
+      local long_opt_var=$(replace_dashes_with_underscores "$long_opt")
+      req_arg_string="$req_arg_string\"$long_opt_var\" "
     fi
 
     if endswith "+" $long_opt
