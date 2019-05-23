@@ -69,6 +69,11 @@ function has_default() {
   fi
 }
 
+function replace_dashes_with_underscores() {
+  local original_option="$1"
+  echo "$original_option" | tr - _
+}
+
 function create_arg_array() {
   local long_arg_csv=$1
   local short_arg_csv=$2
@@ -313,6 +318,9 @@ function create_parse_string() {
       source <(echo $long_opt | awk -F"=" '{print $1 "=" $2 "\nlong_opt=" $1}')
       default_arg_string="$default_arg_string\"$long_opt\" "
     fi
+
+    long_opt_var=$(replace_dashes_with_underscores $long_opt)
+    short_opt_var=$(replace_dashes_with_underscores $short_opt)
  
     if [ "$seperator" = " " ]
     then
