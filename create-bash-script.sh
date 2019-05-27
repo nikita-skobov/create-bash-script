@@ -192,13 +192,6 @@ function create_req_arg_string() {
       req_arg_string="$req_arg_string\"$long_opt_var\" "
     fi
 
-    ## TODO: Remove this?
-    if endswith "+" $long_opt
-    then
-      # remove the last character: +
-      long_opt=$(echo ${long_opt%\+})
-    fi
-    ## END TODO
   done
 
   req_arg_string="$req_arg_string)"
