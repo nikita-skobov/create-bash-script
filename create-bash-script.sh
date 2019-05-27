@@ -69,6 +69,11 @@ function has_default() {
   fi
 }
 
+function replace_dashes_with_underscores() {
+  local original_option="$1"
+  echo "$original_option" | tr - _
+}
+
 function create_arg_array() {
   local long_arg_csv=$1
   local short_arg_csv=$2
@@ -183,14 +188,10 @@ function create_req_arg_string() {
       is_required="*"
       # remove the first character: *
       long_opt=$(echo "$long_opt" | cut -c 2-)
-      req_arg_string="$req_arg_string\"$long_opt\" "
+      local long_opt_var=$(replace_dashes_with_underscores "$long_opt")
+      req_arg_string="$req_arg_string\"$long_opt_var\" "
     fi
 
-    if endswith "+" $long_opt
-    then
-      # remove the last character: +
-      long_opt=$(echo ${long_opt%\+})
-    fi
   done
 
   req_arg_string="$req_arg_string)"
@@ -313,6 +314,8 @@ function create_parse_string() {
       source <(echo $long_opt | awk -F"=" '{print $1 "=" $2 "\nlong_opt=" $1}')
       default_arg_string="$default_arg_string\"$long_opt\" "
     fi
+
+    local long_opt_var=$(replace_dashes_with_underscores $long_opt)
  
     if [ "$seperator" = " " ]
     then
@@ -324,13 +327,13 @@ function create_parse_string() {
 	  then
 	    parse_string="$parse_string\n\t--$long_opt)\n\t\tusage 1 && exit 0\n\t\t;;"
 	  else
-	    parse_string="$parse_string\n\t--$long_opt)\n\t\t$long_opt=\"true\"\n\t\tshift\n\t\t;;"
+	    parse_string="$parse_string\n\t--$long_opt)\n\t\t$long_opt_var=\"true\"\n\t\tshift\n\t\t;;"
 	  fi
 	elif [[ $(echo $multiple_arg_string | grep $long_opt) ]];
 	then
-          parse_string="$parse_string\n\t--$long_opt)\n\t\t$long_opt+=(\"\$2\")\n\t\tshift 2\n\t\t;;"
+          parse_string="$parse_string\n\t--$long_opt)\n\t\t$long_opt_var+=(\"\$2\")\n\t\tshift 2\n\t\t;;"
 	else
-          parse_string="$parse_string\n\t--$long_opt)\n\t\t$long_opt=\"\$2\"\n\t\tshift 2\n\t\t;;"
+          parse_string="$parse_string\n\t--$long_opt)\n\t\t$long_opt_var=\"\$2\"\n\t\tshift 2\n\t\t;;"
 	fi
       else
 	if [[ $(echo $no_arg_string | grep $long_opt) ]]; 
@@ -339,13 +342,13 @@ function create_parse_string() {
           then
             parse_string="$parse_string\n\t-$short_opt|--$long_opt)\n\t\tusage 1 && exit 0\n\t\t;;"
           else
-	    parse_string="$parse_string\n\t-$short_opt|--$long_opt)\n\t\t$long_opt=\"true\"\n\t\tshift\n\t\t;;"
+	    parse_string="$parse_string\n\t-$short_opt|--$long_opt)\n\t\t$long_opt_var=\"true\"\n\t\tshift\n\t\t;;"
 	  fi
 	elif [[ $(echo $multiple_arg_string | grep $long_opt) ]]; 
 	then
-          parse_string="$parse_string\n\t-$short_opt|--$long_opt)\n\t\t$long_opt+=(\"\$2\")\n\t\tshift 2\n\t\t;;"
+          parse_string="$parse_string\n\t-$short_opt|--$long_opt)\n\t\t$long_opt_var+=(\"\$2\")\n\t\tshift 2\n\t\t;;"
 	else
-          parse_string="$parse_string\n\t-$short_opt|--$long_opt)\n\t\t$long_opt=\"\$2\"\n\t\tshift 2\n\t\t;;"
+          parse_string="$parse_string\n\t-$short_opt|--$long_opt)\n\t\t$long_opt_var=\"\$2\"\n\t\tshift 2\n\t\t;;"
 	fi
       fi
     else
@@ -357,13 +360,13 @@ function create_parse_string() {
 	  then
 	    parse_string="$parse_string\n\t-$short_opt|--$long_opt)\n\t\tusage 1 && exit 0\n\t\t;;"
 	  else
-            parse_string="$parse_string\n\t--$long_opt)\n\t\t$long_opt=\"true\"\n\t\tshift\n\t\t;;"
+            parse_string="$parse_string\n\t--$long_opt)\n\t\t$long_opt_var=\"true\"\n\t\tshift\n\t\t;;"
 	  fi
 	elif [[ $(echo $multiple_arg_string | grep $long_opt) ]]; 
 	then
-          parse_string="$parse_string\n\t--$long_opt=*)\n\t\t$long_opt+=(\"\${key#*=}\")\n\t\tshift\n\t\t;;"
+          parse_string="$parse_string\n\t--$long_opt=*)\n\t\t$long_opt_var+=(\"\${key#*=}\")\n\t\tshift\n\t\t;;"
 	else
-          parse_string="$parse_string\n\t--$long_opt=*)\n\t\t$long_opt=\"\${key#*=}\"\n\t\tshift\n\t\t;;"
+          parse_string="$parse_string\n\t--$long_opt=*)\n\t\t$long_opt_var=\"\${key#*=}\"\n\t\tshift\n\t\t;;"
 	fi
       else
 	if [[ $(echo $no_arg_string | grep $long_opt) ]]; 
@@ -372,13 +375,13 @@ function create_parse_string() {
           then
             parse_string="$parse_string\n\t-$short_opt|--$long_opt)\n\t\tusage 1 && exit 0\n\t\t;;"
           else
-	    parse_string="$parse_string\n\t-$short_opt|--$long_opt)\n\t\t$long_opt=\"true\"\n\t\tshift\n\t\t;;"
+	    parse_string="$parse_string\n\t-$short_opt|--$long_opt)\n\t\t$long_opt_var=\"true\"\n\t\tshift\n\t\t;;"
 	  fi
 	elif [[ $(echo $multiple_arg_string | grep $long_opt) ]]; 
 	then
-          parse_string="$parse_string\n\t-$short_opt=*|--$long_opt=*)\n\t\t$long_opt+=(\"\${key#*=}\")\n\t\tshift\n\t\t;;"
+          parse_string="$parse_string\n\t-$short_opt=*|--$long_opt=*)\n\t\t$long_opt_var+=(\"\${key#*=}\")\n\t\tshift\n\t\t;;"
 	else
-          parse_string="$parse_string\n\t-$short_opt=*|--$long_opt=*)\n\t\t$long_opt=\"\${key#*=}\"\n\t\tshift\n\t\t;;"
+          parse_string="$parse_string\n\t-$short_opt=*|--$long_opt=*)\n\t\t$long_opt_var=\"\${key#*=}\"\n\t\tshift\n\t\t;;"
 	fi
       fi
     fi
